@@ -1,0 +1,25 @@
+model:
+  model_name: distilbert-base-uncased
+  artifacts_dir: artifacts/model
+  threshold: 0.5
+
+rules:
+  severity_threshold: 0.3
+
+dedup:
+  model: all-MiniLM-L6-v2
+  threshold: 0.8
+  templates_path: data/scam_templates.txt
+
+ocr:
+  language: eng
+
+api:
+  host: 0.0.0.0
+  port: 5000
+
+mongo:
+  db: scamshield
+
+frontend:
+  backend_url: http://localhost:5000
