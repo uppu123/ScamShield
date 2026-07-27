@@ -1,0 +1,14 @@
+.venv
+__pycache__
+*.pyc
+.git
+.gitignore
+.env
+data/raw
+artifacts
+tests
+docs
+scripts
+Makefile
+pytest.ini
+CHANGELOG.md
