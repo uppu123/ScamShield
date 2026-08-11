@@ -134,6 +134,22 @@ API on the next request.
 pytest -q
 ```
 
+## Demo
+
+```bash
+python scripts/download_emscad.py   # optional
+python -m backend.app               # API on :5000
+streamlit run frontend/app.py       # dashboard on :8501
+```
+
+Paste a suspicious posting (or upload a screenshot), get the scam score gauge,
+highlighted red flags, a plain-language explanation, and ask the chat "is asking
+for a security deposit normal?". Example used for testing:
+
+> Urgent hiring! Work from home, no experience needed. Earn up to Rs 50,000 per
+> month. Pay a one-time registration fee of Rs 2000 to book your seat. Limited
+> seats, apply within 24 hours. Contact hr.department45@gmail.com
+
 ## Roadmap / build plan (compressed to 1 day)
 
 | Track           | Built in this repo                                          |
