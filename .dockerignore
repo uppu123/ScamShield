@@ -5,6 +5,7 @@ __pycache__
 .gitignore
 .env
 data/raw
+artifacts/model/checkpoint-*
 tests
 docs
 scripts
