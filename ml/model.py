@@ -69,7 +69,8 @@ class ScamClassifier:
             try:
                 result = self.pipeline(text)[0]
                 for entry in result:
-                    if "fraud" in entry.get("label", "").lower() or entry["label"] == "1":
+                    label = (entry.get("label") or "").upper()
+                    if label == "1" or label == "LABEL_1" or "FRAUD" in label:
                         return float(entry["score"])
             except Exception:
                 pass

@@ -1,7 +1,11 @@
 import os
 
+from dotenv import load_dotenv
+
 from flask import Flask, jsonify
 from flask_cors import CORS
+
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 from .routes.analyze import bp as analyze_bp
 from .routes.chat import bp as chat_bp

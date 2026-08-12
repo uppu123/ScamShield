@@ -4,6 +4,7 @@ import os
 from datasets import Dataset
 from sklearn.metrics import accuracy_score, f1_score
 from transformers import (
+    AutoConfig,
     AutoModelForSequenceClassification,
     AutoTokenizer,
     Trainer,
@@ -29,12 +30,13 @@ def main():
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=2e-5)
     parser.add_argument("--max-length", type=int, default=256)
+    parser.add_argument("--balance", action="store_true", help="Downsample majority class (class-balanced training)")
     parser.add_argument("--output-dir", default="artifacts/model")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
-    train_df, val_df = prepare(args.data, seed=args.seed)
+    train_df, val_df = prepare(args.data, seed=args.seed, balance=args.balance)
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
     def tokenize(batch):
@@ -53,8 +55,11 @@ def main():
         .rename_column("fraudulent", "labels")
     )
 
+    config = AutoConfig.from_pretrained(args.model_name, num_labels=2)
+    config.id2label = {0: "legitimate", 1: "fraudulent"}
+    config.label2id = {"legitimate": 0, "fraudulent": 1}
     model = AutoModelForSequenceClassification.from_pretrained(
-        args.model_name, num_labels=2
+        args.model_name, config=config
     )
 
     training_args = TrainingArguments(

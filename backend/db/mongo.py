@@ -27,23 +27,23 @@ class Database:
 
     @property
     def postings(self):
-        return self.db.postings if self.db else None
+        return self.db.postings if self.db is not None else None
 
     @property
     def reports(self):
-        return self.db.reports if self.db else None
+        return self.db.reports if self.db is not None else None
 
     @property
     def scam_patterns(self):
-        return self.db.scam_patterns if self.db else None
+        return self.db.scam_patterns if self.db is not None else None
 
     def insert_posting(self, doc):
         if self.postings is not None:
-            self.postings.insert_one(doc)
+            self.postings.insert_one(dict(doc))
 
     def insert_report(self, doc):
         if self.reports is not None:
-            self.reports.insert_one(doc)
+            self.reports.insert_one(dict(doc))
 
     def recent_reports(self, limit=20):
         if self.reports is None:

@@ -5,7 +5,6 @@ __pycache__
 .gitignore
 .env
 data/raw
-artifacts
 tests
 docs
 scripts

@@ -6,6 +6,7 @@ OUT = "data/raw/emscad.csv"
 KAGGLE_DATASET = "shivamb/emscad-employment-scam-classification-dataset"
 
 MIRRORS = [
+    "https://raw.githubusercontent.com/Erfaniaa/fake-job-posting-prediction/master/dataset.csv",
     "https://raw.githubusercontent.com/martin-vb/emscad/main/data/emscad_v1.csv",
     "https://raw.githubusercontent.com/fivethirtyeight/data/master/emscad/emscad.csv",
 ]

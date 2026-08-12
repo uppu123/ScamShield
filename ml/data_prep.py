@@ -21,9 +21,13 @@ def build_text(df, columns=None):
     return df[cols].fillna("").agg(" ".join, axis=1)
 
 
-def prepare(path="data/raw/emscad.csv", test_size=0.2, seed=42):
+def prepare(path="data/raw/emscad.csv", test_size=0.2, seed=42, balance=False):
     df = load_emscad(path)
     df["text"] = build_text(df)
+    if balance:
+        fraud = df[df[LABEL_COLUMN] == 1]
+        legit = df[df[LABEL_COLUMN] == 0].sample(n=len(fraud), random_state=seed)
+        df = pd.concat([fraud, legit])
     train, val = train_test_split(
         df, test_size=test_size, stratify=df[LABEL_COLUMN], random_state=seed
     )

@@ -11,6 +11,6 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install core dependencies
-        run: pip install pytest pillow numpy flask flask-cors pymongo pytesseract
+        run: pip install pytest pillow numpy flask flask-cors pymongo pytesseract fpdf2
       - name: Run test suite
         run: pytest -q

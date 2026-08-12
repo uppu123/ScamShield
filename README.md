@@ -16,6 +16,9 @@ registration fee") target freshers and job seekers.
 - **Screenshot OCR** support (WhatsApp forwards, LinkedIn post images).
 - **Explainable**: highlighted red flags in the text + natural-language
   explanation + a Q&A chatbot.
+- **Shareable reports**: download every analysis as JSON or a clean user-friendly
+  PDF report.
+- **Light / dark theme** toggle in the sidebar.
 - **Crowdsourced feedback loop**: user-reported scams grow the pattern database.
 
 ## Architecture
@@ -113,11 +116,15 @@ Example response:
 ## Docker
 
 ```bash
-cp .env.example .env      # fill in MONGO_URI
+cp .env.example .env      # fill in MONGO_URI, GEMINI_API_KEY
 docker compose up --build
-# API    -> http://localhost:5000
-# Streamlit -> http://localhost:8501
+# Dashboard  -> https://localhost  (nginx, TLS)  — self-signed cert on first boot
+# Streamlit  -> http://localhost:8501
+# API        -> http://localhost:5000
 ```
+
+See `docs/DEPLOYMENT.md` for the Let's Encrypt/TLS swap and MongoDB Atlas IP
+allowlist hardening.
 
 ## Fine-tuning the classifier
 
@@ -168,5 +175,4 @@ for a security deposit normal?". Example used for testing:
 - Fine-tune DistilBERT on the full EMSCAD dataset and record eval metrics.
 - Add spaCy NER for company/entity extraction.
 - Upload screenshots to AWS S3.
-- Wire an LLM layer for free-form explanation + chat.
 - Deploy to AWS EC2 behind Nginx/Gunicorn and test on real anonymized postings.
