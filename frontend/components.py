@@ -385,16 +385,23 @@ def render_result(result, source_text="", gauge_size=170, uid=None, show_raw=Tru
             unsafe_allow_html=True,
         )
     with c3:
-        st.markdown(
-            download_link(
-                "Download PDF report",
-                build_pdf_report(result, payload_text),
-                f"scamshield_report_{result.get('hash', 'analysis')}.pdf",
-                "application/pdf",
-                "pdf",
-            ),
-            unsafe_allow_html=True,
-        )
+        try:
+            pdf_bytes = build_pdf_report(result, payload_text)
+        except Exception:
+            pdf_bytes = None
+        if pdf_bytes:
+            st.markdown(
+                download_link(
+                    "Download PDF report",
+                    pdf_bytes,
+                    f"scamshield_report_{result.get('hash', 'analysis')}.pdf",
+                    "application/pdf",
+                    "pdf",
+                ),
+                unsafe_allow_html=True,
+            )
+        else:
+            st.caption("PDF report unavailable (no font on this host). JSON works.")
     with c4:
         if st.button("New analysis", use_container_width=True, key=f"new_{uid}"):
             st.session_state.last_result = None

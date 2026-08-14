@@ -28,6 +28,7 @@ def _find_font_dir():
         "/usr/share/fonts/truetype/dejavu",
         "/usr/share/fonts/dejavu",
         "/usr/share/fonts/truetype/liberation",
+        "/usr/share/fonts/truetype/noto",
     ]
     for directory in candidates:
         if os.path.isdir(directory):
@@ -40,25 +41,35 @@ def _find_font_dir():
             return bundled
     except Exception:
         pass
-    raise RuntimeError(
-        "No TrueType font found for PDF report generation. Set SCAMSHIELD_FONT_DIR "
-        "or install fonts-dejavu-core / Liberation fonts."
-    )
+    return None
 
 
-_FONT_DIR = os.environ.get("SCAMSHIELD_FONT_DIR") or _find_font_dir()
+_FONT_DIR_CACHE = None
+
+
+def _font_dir():
+    global _FONT_DIR_CACHE
+    if _FONT_DIR_CACHE is None:
+        _FONT_DIR_CACHE = os.environ.get("SCAMSHIELD_FONT_DIR") or _find_font_dir()
+    return _FONT_DIR_CACHE
 
 
 def _font_files():
+    directory = _font_dir()
+    if not directory:
+        raise RuntimeError(
+            "No TrueType font found for PDF report generation. Set SCAMSHIELD_FONT_DIR "
+            "or install fonts-dejavu-core / Liberation fonts."
+        )
     files = {}
     for style, names in _STYLE_FILES:
         for name in names:
-            path = os.path.join(_FONT_DIR, name)
+            path = os.path.join(directory, name)
             if os.path.isfile(path):
                 files[style] = path
                 break
         else:
-            raise FileNotFoundError(f"No font variant for style '{style}' in {_FONT_DIR}")
+            raise FileNotFoundError(f"No font variant for style '{style}' in {directory}")
     return files
 
 
