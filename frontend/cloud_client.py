@@ -114,6 +114,18 @@ def _pipeline():
     return ScamPipeline({"model_dir": _model_ref(), "dup_threshold": 0.8})
 
 
+def _safe_host():
+    """Hostname of the configured Mongo URI (credentials redacted)."""
+    uri = os.environ.get("MONGO_URI") or ""
+    try:
+        from urllib.parse import urlparse
+
+        parsed = urlparse(uri.replace("mongodb+srv://", "http://").replace("mongodb://", "http://"))
+        return parsed.hostname or ""
+    except Exception:
+        return ""
+
+
 def health():
     return True
 
@@ -124,6 +136,8 @@ def diagnostics():
     return {
         "secrets_parse_error": _config_error,
         "mongo_uri_set": bool(os.environ.get("MONGO_URI")),
+        "mongo_host": _safe_host(),
+        "mongo_last_error": getattr(db, "last_error", None),
         "gemini_key_set": bool(os.environ.get("GEMINI_API_KEY")),
         "model_disabled": bool(os.environ.get("SCAMSHIELD_DISABLE_MODEL")),
         "model": _model_ref() or None,
@@ -133,10 +147,17 @@ def diagnostics():
 def ping_db():
     """Blocking MongoDB connection check (for the diagnostics panel)."""
     _configure()
-    try:
-        return bool(db.is_connected())
-    except Exception:
-        return False
+    if not os.environ.get("MONGO_URI"):
+        return False, "MONGO_URI is not set. Check the Secrets tab."
+    last_error = "No attempt made"
+    for _ in range(2):
+        try:
+            if db.is_connected():
+                return True, "connected"
+            last_error = getattr(db, "last_error", None) or "unknown error"
+        except Exception as exc:
+            last_error = str(exc)
+    return False, last_error
 
 
 def analyze_text(text):

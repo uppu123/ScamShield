@@ -7,12 +7,14 @@ class Database:
     def __init__(self, uri=None, dbname="scamshield"):
         self.client = None
         self.db = None
+        self.last_error = None
         uri = uri or os.environ.get("MONGO_URI")
         if uri:
             try:
-                self.client = MongoClient(uri, serverSelectionTimeoutMS=5000)
+                self.client = MongoClient(uri, serverSelectionTimeoutMS=10000)
                 self.db = self.client[dbname]
-            except Exception:
+            except Exception as exc:
+                self.last_error = f"init: {exc}"
                 self.client = None
                 self.db = None
 
@@ -21,8 +23,10 @@ class Database:
             return False
         try:
             self.client.admin.command("ping")
+            self.last_error = None
             return True
-        except Exception:
+        except Exception as exc:
+            self.last_error = str(exc)
             return False
 
     @property

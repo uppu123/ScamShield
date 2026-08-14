@@ -71,10 +71,11 @@ with st.sidebar:
             st.error(diag["secrets_parse_error"])
         st.json(diag)
         if st.button("Test MongoDB connection", key="diag_ping"):
-            if cloud_client.ping_db():
+            ok, err = cloud_client.ping_db()
+            if ok:
                 st.success("MongoDB connected.")
             else:
-                st.error("MongoDB not reachable. Check MONGO_URI / allowlist.")
+                st.error(f"MongoDB not reachable: {err}")
 
 st.markdown(
     '<div class="ss-hero"><h1>ScamShield</h1>'
