@@ -85,7 +85,13 @@ CSS = """
 [data-testid="stDateInput"] input, [data-baseweb="select"] > div {
   background:#ffffff; color:#0f172a; border-color:#cbd5e1;
 }
-[data-testid="stTextArea"] textarea::placeholder, [data-testid="stTextInput"] input::placeholder { color:#94a3b8; }
+[data-testid="stTextArea"] textarea::placeholder, [data-testid="stTextInput"] input::placeholder,
+[data-testid="stDateInput"] input::placeholder,
+[data-testid="stTextArea"] textarea::-webkit-input-placeholder,
+[data-testid="stTextInput"] input::-webkit-input-placeholder,
+[data-testid="stDateInput"] input::-webkit-input-placeholder {
+  color:#64748b !important; opacity:1 !important;
+}
 [data-testid="stTextInput"] input:-webkit-autofill, [data-testid="stTextArea"] textarea:-webkit-autofill {
   -webkit-text-fill-color:#0f172a; -webkit-box-shadow:0 0 0 1000px #ffffff inset; caret-color:#0f172a;
 }
@@ -142,7 +148,13 @@ DARK_CSS = """
 [data-testid="stDateInput"] input, [data-baseweb="select"] > div {
   background:#0f172a; color:#e2e8f0; border-color:#1e293b;
 }
-[data-testid="stTextArea"] textarea::placeholder, [data-testid="stTextInput"] input::placeholder { color:#64748b; }
+[data-testid="stTextArea"] textarea::placeholder, [data-testid="stTextInput"] input::placeholder,
+[data-testid="stDateInput"] input::placeholder,
+[data-testid="stTextArea"] textarea::-webkit-input-placeholder,
+[data-testid="stTextInput"] input::-webkit-input-placeholder,
+[data-testid="stDateInput"] input::-webkit-input-placeholder {
+  color:#94a3b8 !important; opacity:1 !important;
+}
 [data-testid="stTextArea"] textarea:focus, [data-testid="stTextInput"] input:focus { border-color:#4f46e5; }
 [data-testid="stTextInput"] input:-webkit-autofill, [data-testid="stTextArea"] textarea:-webkit-autofill {
   -webkit-text-fill-color:#e2e8f0; -webkit-box-shadow:0 0 0 1000px #0f172a inset; caret-color:#e2e8f0;

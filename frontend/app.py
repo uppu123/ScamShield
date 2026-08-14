@@ -143,7 +143,12 @@ with tab_text:
     elif sample == "Legit sample":
         st.session_state.analyze_text = LEGIT_SAMPLE
 
-    st.text_area("Paste the job posting text", height=240, key="analyze_text")
+    st.text_area(
+        "Paste the job posting text",
+        height=240,
+        key="analyze_text",
+        placeholder="Paste the job posting text here, or pick a sample above. e.g. 'Work from home, earn Rs 50,000/month, pay a refundable deposit to apply...'",
+    )
 
     c1, c2 = st.columns([1, 1])
     run_analysis = c1.button("Analyze posting", type="primary", use_container_width=True)
