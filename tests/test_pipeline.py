@@ -19,3 +19,8 @@ def test_analyze_text_returns_full_result():
 def test_analyze_empty_text_returns_error():
     result = ScamPipeline().analyze_text("   ")
     assert result["error"] == "empty_text"
+
+
+def test_analyze_invalid_image_returns_json_error():
+    result = ScamPipeline().analyze_image(b"this is not an image")
+    assert result["error"] == "invalid_image"

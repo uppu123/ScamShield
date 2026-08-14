@@ -1,9 +1,8 @@
-import os
 from datetime import datetime, timezone
 
-import requests
 import streamlit as st
 
+import cloud_client
 from components import (
     backend_status,
     fetch_reports,
@@ -16,8 +15,6 @@ from components import (
     render_result,
     render_typing,
 )
-
-BACKEND = os.environ.get("BACKEND_URL", "http://localhost:5000")
 
 SCAM_SAMPLE = (
     "URGENT: Work from home data entry job! Earn Rs. 50,000/month guaranteed income. "
@@ -41,18 +38,18 @@ for key, default in (("last_result", None), ("last_source", ""), ("history", [])
 if st.session_state.theme == "Dark":
     inject_dark_css()
 
-online = backend_status(BACKEND)
+online = backend_status()
 
 with st.sidebar:
     st.markdown('<div class="sb-brand">ScamShield</div>', unsafe_allow_html=True)
     status_cls = "ok" if online else "bad"
     st.markdown(
         f'<div class="sb-status"><span class="dot {status_cls}"></span>'
-        f'{"Backend online" if online else "Backend offline"}</div>',
+        f'{"Engine ready" if online else "Engine unavailable"}</div>',
         unsafe_allow_html=True,
     )
     if not online:
-        st.caption("Start it with `python -m backend.app` from `C:\\Scam Shield`.")
+        st.caption("The analysis engine failed to start.")
     st.markdown("---")
     st.subheader("Appearance")
     st.radio(
@@ -80,17 +77,13 @@ def _analyze(call, label="Running analysis"):
     holder = st.empty()
     holder.markdown(render_loader(label), unsafe_allow_html=True)
     try:
-        resp = call()
-    except requests.ConnectionError:
-        resp = None
+        data = call()
+    except Exception as exc:
+        data = {"error": "analysis_failed", "message": str(exc)}
     finally:
         holder.empty()
-    if resp is None:
-        st.error(f"Cannot reach backend at {BACKEND}. Start it with `python -m backend.app`.")
-        return None
-    data = resp.json()
-    if resp.status_code >= 400 and data.get("error"):
-        st.error(data.get("message", "Analysis failed."))
+    if data is None or data.get("error"):
+        st.error(data.get("message", data.get("error", "Analysis failed.")) if data else "Analysis failed.")
         return None
     return data
 
@@ -117,14 +110,11 @@ def _send_chat(message):
     typing = st.empty()
     typing.markdown(render_typing(), unsafe_allow_html=True)
     try:
-        resp = requests.post(
-            f"{BACKEND}/chat", json={"message": message, "history": prior}, timeout=60
-        )
-        data = resp.json()
+        data = cloud_client.chat(message, prior)
         reply = data.get("reply", "Sorry, I could not process that.")
         source = data.get("source", "faq")
-    except requests.RequestException:
-        reply = f"Cannot reach backend at {BACKEND}."
+    except Exception:
+        reply = "The assistant could not be reached."
         source = "offline"
     finally:
         typing.empty()
@@ -156,13 +146,13 @@ with tab_text:
         if not text.strip():
             st.warning("Paste some job posting text first.")
         else:
-            result = _analyze(lambda: requests.post(f"{BACKEND}/analyze_text", json={"text": text}, timeout=60))
+            result = _analyze(lambda: cloud_client.analyze_text(text))
             if result is not None:
                 st.session_state.last_source = text
                 _commit(result, "text")
 
     if st.session_state.last_result:
-        render_result(st.session_state.last_result, st.session_state.last_source, BACKEND, uid="current_text")
+        render_result(st.session_state.last_result, st.session_state.last_source, uid="current_text")
 
 with tab_image:
     file = st.file_uploader(
@@ -182,27 +172,24 @@ with tab_image:
             st.warning("Upload a screenshot first.")
         else:
             result = _analyze(
-                lambda: requests.post(
-                    f"{BACKEND}/analyze_image",
-                    files={"image": (file.name, file.getvalue())},
-                    timeout=60,
-                )
+                lambda: cloud_client.analyze_image(file.getvalue()),
+                label="Reading text from screenshot",
             )
             if result is not None:
                 st.session_state.last_source = result.get("ocr_text", "")
                 _commit(result, "image")
 
     if st.session_state.last_result:
-        render_result(st.session_state.last_result, st.session_state.last_source, BACKEND, uid="current_image")
+        render_result(st.session_state.last_result, st.session_state.last_source, uid="current_image")
 
 with tab_reports:
     if st.button("Refresh feed", use_container_width=True):
         fetch_reports.clear()
-    reports = fetch_reports(BACKEND, 15)
+    reports = fetch_reports(15)
     render_reports(reports)
 
 with tab_history:
-    render_history(st.session_state.history, BACKEND)
+    render_history(st.session_state.history)
 
 with tab_chat:
     render_chat(st.session_state.chat)

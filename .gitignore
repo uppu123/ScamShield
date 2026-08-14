@@ -5,6 +5,7 @@ __pycache__/
 venv/
 .env
 .env.local
+.streamlit/secrets.toml
 .pytest_cache/
 .ipynb_checkpoints/
 artifacts/

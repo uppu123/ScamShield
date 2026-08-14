@@ -50,15 +50,21 @@ class ScamClassifier:
         self._load()
 
     def _load(self):
-        if not os.path.isdir(self.model_dir):
+        if not self.model_dir:
+            return
+        if os.path.isdir(self.model_dir):
+            model_ref = self.model_dir
+        elif "/" in self.model_dir:
+            model_ref = self.model_dir
+        else:
             return
         try:
             from transformers import pipeline
 
             self.pipeline = pipeline(
                 "text-classification",
-                model=self.model_dir,
-                tokenizer=self.model_dir,
+                model=model_ref,
+                tokenizer=model_ref,
                 top_k=None,
             )
         except Exception:

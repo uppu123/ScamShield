@@ -1,9 +1,9 @@
 import html
 import json
 
-import requests
 import streamlit as st
 
+from cloud_client import health, recent_reports, report_scam
 from report import build_pdf_report
 
 PRIMARY = "#4f46e5"
@@ -232,26 +232,22 @@ def _gauge_html(score, color, size):
     )
 
 
-def backend_status(backend):
+def backend_status(_backend=None):
     try:
-        resp = requests.get(f"{backend}/health", timeout=3)
-        return resp.status_code == 200
-    except requests.RequestException:
+        return health()
+    except Exception:
         return False
 
 
 @st.cache_data(ttl=30, show_spinner=False)
-def fetch_reports(backend, limit=15):
+def fetch_reports(_limit=15):
     try:
-        resp = requests.get(f"{backend}/reports", params={"limit": limit}, timeout=30)
-        if resp.status_code != 200:
-            return []
-        return resp.json().get("reports", [])
-    except requests.RequestException:
+        return recent_reports(_limit).get("reports", [])
+    except Exception:
         return []
 
 
-def render_result(result, source_text="", backend="", gauge_size=170, uid=None, show_raw=True):
+def render_result(result, source_text="", gauge_size=170, uid=None, show_raw=True):
     if result.get("error"):
         st.error(result.get("message", result.get("error")))
         return
@@ -366,18 +362,17 @@ def render_result(result, source_text="", backend="", gauge_size=170, uid=None, 
                 st.warning("Nothing to report.")
             else:
                 try:
-                    resp = requests.post(
-                        f"{backend}/report_scam",
-                        json={"text": payload_text, "source": "community-report", "notes": "Reported from ScamShield app"},
-                        timeout=30,
+                    data = report_scam(
+                        payload_text,
+                        notes="Reported from ScamShield app",
+                        source="community-report",
                     )
-                    data = resp.json()
                     if data.get("status") == "saved":
                         st.toast("Reported. Thank you for keeping the community safe.")
                     else:
                         st.warning(data.get("message", "Could not save the report."))
-                except requests.RequestException:
-                    st.error(f"Cannot reach backend at {backend}.")
+                except Exception:
+                    st.error("Could not save the report.")
     with c2:
         st.markdown(
             download_link(
@@ -458,7 +453,7 @@ def render_reports(reports):
         )
 
 
-def render_history(history, backend):
+def render_history(history):
     if not history:
         st.info("No analyses yet in this session. Run one from the Analyze tabs.")
         return
@@ -476,4 +471,4 @@ def render_history(history, backend):
         )
         with st.expander(f"{label} - {score * 100:.0f}% likely scam"):
             st.markdown(head, unsafe_allow_html=True)
-            render_result(res, entry.get("source_text", ""), backend, gauge_size=140, uid=f"hist_{entry.get('time')}", show_raw=False)
+            render_result(res, entry.get("source_text", ""), gauge_size=140, uid=f"hist_{entry.get('time')}", show_raw=False)

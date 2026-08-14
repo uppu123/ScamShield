@@ -1,91 +1,130 @@
-# Deployment (AWS EC2 + Docker)
+# Deployment
 
-## Prerequisites
-- Docker installed on the EC2 instance (Ubuntu 22.04).
-- MongoDB Atlas cluster; set `MONGO_URI` in `.env`.
-- (Chat) Gemini API key; set `GEMINI_API_KEY` in `.env`.
-- Tesseract is installed inside the image; no host install needed.
+Two supported paths:
 
-## Quick start
+1. **Streamlit Community Cloud (recommended, free)** — single-process app, no
+   server to manage, no card required. See below.
+2. **Docker / self-hosted** — the original 2-tier (Flask + Streamlit behind
+   nginx). See the "Docker" section at the end.
+
+## Option A — Streamlit Community Cloud (free)
+
+Deploys directly from your GitHub repo. The dashboard runs the analysis
+**in-process** (no separate Flask backend): `frontend/app.py` calls
+`frontend/cloud_client.py`, which invokes the rule engine + ML model + chat
+service + MongoDB directly.
+
+### 1. Make the repo deployable
+
+- Repo must be **public** (or you need a paid plan for private apps).
+- `frontend/requirements.txt` is what the cloud installs (Streamlit looks in the
+  entrypoint's directory first).
+- `frontend/app.py` is the entrypoint.
+- Secrets go in the dashboard (Settings → Secrets) — see step 4.
+
+### 2. Deploy
+
+1. Go to <https://share.streamlit.io> and sign in with GitHub.
+2. **Create app** → select `uppu123/ScamShield` → branch `main` →
+   entrypoint `frontend/app.py`.
+3. In **Advanced settings** set **Python version 3.11** (torch 2.3.1 does not
+   support 3.13/3.14 — Cloud defaults to 3.14).
+
+### 3. Model
+
+- If `artifacts/model` is missing (it's git-ignored), the app automatically
+  pulls the trained model from Hugging Face: **`nimoAlpha/scamshield-distilbert`**
+  (see `cloud_client._model_ref`).
+- To disable the model entirely (low-memory environments), set the secret
+  `SCAMSHIELD_DISABLE_MODEL = "1"` — the app then uses the rule engine + keyword
+  heuristic only.
+
+### 4. Secrets (Settings → Secrets)
+
+```toml
+MONGO_URI = "mongodb+srv://USER:PASS@cluster0.example.mongodb.net/scamshield"
+GEMINI_API_KEY = "your-gemini-api-key"
+SCAMSHIELD_MODEL = "nimoAlpha/scamshield-distilbert"
+# SCAMSHIELD_DISABLE_MODEL = "1"
+```
+
+A committed template lives at `.streamlit/secrets.toml.example`. The real
+`.streamlit/secrets.toml` is git-ignored.
+
+### 5. Behaviour notes on the cloud
+
+- **OCR**: the cloud runtime has no Tesseract binary, so screenshot analysis
+  returns a graceful `ocr_unavailable` result instead of reading text. Text
+  analysis, chat, reports, downloads and the model are unaffected.
+- **Memory**: free public apps get ~1GB RAM. Loading torch + the 268MB model is
+  tight but works; if the app is ever killed after "Analyze", set
+  `SCAMSHIELD_DISABLE_MODEL = "1"` to fall back to the rule engine.
+- **MongoDB Atlas**: the cluster is open to `0.0.0.0/0`, which is required for
+  a serverless runtime. If you harden it, whitelist the cloud's egress IPs
+  (they change) or keep it open — the DB contains only anonymized postings.
+
+### Local run (unchanged)
 
 ```bash
-# on the instance
+python -m backend.app      # API on :5000 (optional for cloud_client)
+streamlit run frontend/app.py   # dashboard on :8501
+```
+
+`frontend/cloud_client.py` reads secrets from the repo-root `.env` when running
+locally, so both apps keep working even without the Flask backend.
+
+## Option B — Docker (self-hosted)
+
+Original 2-tier deployment (Flask API + Streamlit + nginx TLS) on any VM.
+
+### Prerequisites
+- Docker on the host (Ubuntu 22.04 recommended).
+- MongoDB Atlas cluster; set `MONGO_URI` in `.env`.
+- (Chat) Gemini API key; set `GEMINI_API_KEY` in `.env`.
+
+### Quick start
+
+```bash
 git clone <repo-url> scam-shield && cd scam-shield
 cp .env.example .env            # fill in MONGO_URI, GEMINI_API_KEY, AWS keys
 docker compose up --build -d
 ```
 
-> **Trained model**: `artifacts/model` (267MB) is **not tracked in git** (see
-> `.gitignore`), so a fresh clone has no model and the API silently falls back
-> to the rule engine. To ship the model (baked into the image), build the image
-> on a machine that has `artifacts/model` and use the registry flow below.
->
-> ```bash
-> # on a machine WITH the model (e.g. dev)
-> docker build -t <registry>/scam-shield:latest .
-> docker push <registry>/scam-shield:latest
->
-> # docker-compose.yml backend service: replace `build: .` with `image: <registry>/scam-shield:latest`
-> # on the server
-> docker compose pull && docker compose up -d
-> ```
->
-> Alternative: `scp -r artifacts <server>:~/scam-shield/` before
-> `docker compose up --build -d`.
+- Dashboard: `https://<server-ip>` (port 80 redirects to 443, self-signed cert
+  generated on first boot by `deploy/nginx-entrypoint.sh`).
+- Direct API: port 5000.
 
-- Dashboard: `https://<server-ip>` (port 80 redirects to 443).
-- Direct API (bypass proxy): port 5000.
-- An `nginx` service terminates TLS in front of Streamlit. On first boot it
-  generates a **self-signed** certificate (`deploy/nginx-entrypoint.sh`, stored
-  in the `nginx-certs` volume). For production, replace it with a Let's Encrypt
-  cert (see below) and set `server_name` in `deploy/nginx.conf`.
+> **Trained model**: `artifacts/model` (267MB) is **not tracked in git**. Ship
+> it either by baking it into the image (build on a machine that has it) or by
+> running `python scripts/fetch_model.py` on the host (downloads from HF Hub).
 
-## TLS / reverse proxy (nginx)
+### TLS / reverse proxy (nginx)
 
-Config lives in `deploy/nginx.conf`; a service in `docker-compose.yml` runs it.
+Config lives in `deploy/nginx.conf`. `location /` → Streamlit (WebSocket
+upgrades configured), `location /api/` → Flask backend, port 80 → 301 redirect.
 
-- `location /` → Streamlit (WebSocket upgrades are configured).
-- `location /api/` → Flask backend (proxies `/api/...` to `:5000/...`).
-- Port 80 → 301 redirect to HTTPS.
+For a production certificate, swap the self-signed certs for Let's Encrypt
+(see the certificate example at the bottom of this file) and set `server_name`
+in `deploy/nginx.conf`.
 
-### Production certificate (Let's Encrypt, recommended)
+### MongoDB Atlas — restrict IP allowlist
 
-```bash
-docker compose exec nginx sh -c "ls /etc/nginx/certs"   # after first boot
-# Then swap the self-signed certs for a real one, e.g. with certbot on the host:
-sudo apt-get install -y certbot
-sudo certbot certonly --standalone -d app.example.com -d www.app.example.com
-# Copy the issued certs into the nginx volume:
-docker cp /etc/letsencrypt/live/app.example.com/fullchain.pem <nginx-container>:/etc/nginx/certs/fullchain.pem
-docker cp /etc/letsencrypt/live/app.example.com/privkey.pem  <nginx-container>:/etc/nginx/certs/privkey.pem
-docker compose restart nginx
-```
+The cluster is currently open to `0.0.0.0/0` (any IP). **Restrict it for
+self-hosting:**
 
-Set `server_name app.example.com;` in `deploy/nginx.conf` and add a DNS A
-record pointing `app.example.com` at the instance IP. Add a cron/certbot
-renewal hook to keep the cert fresh (self-signed certs are valid 365 days).
-
-## MongoDB Atlas — restrict IP allowlist
-
-The cluster is currently open to `0.0.0.0/0` (any IP). **Restrict it now:**
-
-1. Log in to [cloud.mongodb.com](https://cloud.mongodb.com) → your cluster
-   (`cluster0`) → **Network Access**.
+1. cloud.mongodb.com → your cluster → **Network Access**.
 2. Delete the `0.0.0.0/0` entry.
-3. Add an allowlist entry for **your deployment's egress IP**:
-   - EC2: the instance's public/elastic IP (get it from
-     `curl ifconfig.me` run on the instance), or the NAT gateway IP.
-   - Home: your public IP.
-4. If the IP is dynamic, add the CIDR for your ISP range or use a VPC/NAT with
-   a static egress IP.
+3. Add an allowlist entry for **your deployment's egress IP** (`curl ifconfig.me`
+   on the server).
+4. If the IP is dynamic, add your ISP CIDR or use a NAT with a static egress IP.
 
-This is a manual dashboard step (requires your Atlas account) — the IP can be
-fetched with `curl ifconfig.me` on the server before adding it.
+Do NOT restrict it if the app runs on Streamlit Community Cloud (serverless
+egress IPs change) — keep `0.0.0.0/0` there.
 
-## Production notes
-- `docker compose` has restart policies via the healthcheck; add
-  `restart: unless-stopped` to services if desired.
-- Move MongoDB Atlas / S3 credentials to Secrets Manager or Docker secrets.
-- Scale the API with more Gunicorn workers behind an ELB.
-- The Streamlit service `pip install`s its deps at container start — build a
-  dedicated frontend image for faster cold starts.
+### Production notes (Docker path)
+
+- Add `restart: unless-stopped` to services (`docker-compose.prod.yml` does this).
+- `docker-compose.prod.yml` also sets `GUNICORN_WORKERS=1` (fits 4GB droplets).
+- CPU-only torch (`--index-url https://download.pytorch.org/whl/cpu`) can shrink
+  the image from ~10.5GB to ~4GB.
+- Move Mongo / S3 credentials to Secrets Manager or Docker secrets.

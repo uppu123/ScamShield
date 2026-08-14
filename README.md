@@ -49,7 +49,7 @@ registration fee") target freshers and job seekers.
 - **Backend**: Flask REST API
 - **Frontend**: Streamlit
 - **Storage**: MongoDB Atlas; screenshots to AWS S3 (optional)
-- **Deployment**: Docker + Nginx/Gunicorn on AWS EC2
+- **Deployment**: Streamlit Community Cloud (free, single-process) or Docker + Nginx/Gunicorn — see `docs/DEPLOYMENT.md`
 
 ## Project layout
 
@@ -113,6 +113,15 @@ Example response:
 }
 ```
 
+## Deploy
+
+Free hosting on **Streamlit Community Cloud** (single-process, no card needed):
+deploy `frontend/app.py` from your GitHub repo, set Python 3.11, and add the
+secrets (`MONGO_URI`, `GEMINI_API_KEY`, `SCAMSHIELD_MODEL`) in the dashboard.
+Full instructions (plus the Docker/self-hosted option) are in
+`docs/DEPLOYMENT.md`. A template for the secrets is at
+`.streamlit/secrets.toml.example`.
+
 ## Docker
 
 ```bash
@@ -175,4 +184,4 @@ for a security deposit normal?". Example used for testing:
 - Fine-tune DistilBERT on the full EMSCAD dataset and record eval metrics.
 - Add spaCy NER for company/entity extraction.
 - Upload screenshots to AWS S3.
-- Deploy to AWS EC2 behind Nginx/Gunicorn and test on real anonymized postings.
+- Deploy to Streamlit Community Cloud and test on real anonymized postings.

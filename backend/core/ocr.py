@@ -4,6 +4,10 @@ import os
 from PIL import Image
 
 
+class OCRImageError(Exception):
+    """Raised when the uploaded bytes cannot be decoded as an image."""
+
+
 class OCREngine:
     def __init__(self, tesseract_cmd=None, lang="eng"):
         self.tesseract_cmd = tesseract_cmd or os.environ.get("TESSERACT_CMD")
@@ -28,6 +32,13 @@ class OCREngine:
             return "", False
         import pytesseract
 
-        image = Image.open(io.BytesIO(image_bytes))
-        text = pytesseract.image_to_string(image, lang=self.lang)
+        try:
+            image = Image.open(io.BytesIO(image_bytes))
+            image.load()
+        except Exception:
+            raise OCRImageError("The uploaded file could not be read as an image.") from None
+        try:
+            text = pytesseract.image_to_string(image, lang=self.lang)
+        except Exception:
+            return "", False
         return text.strip(), True

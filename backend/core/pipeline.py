@@ -2,7 +2,7 @@ import os
 
 from .dedup import TemplateMatcher
 from .explain import build_explanation, highlight_flags
-from .ocr import OCREngine
+from .ocr import OCRImageError, OCREngine
 from .rules import RuleEngine
 
 
@@ -54,7 +54,10 @@ class ScamPipeline:
         }
 
     def analyze_image(self, image_bytes):
-        ocr_text, ok = self.ocr.extract_text(image_bytes)
+        try:
+            ocr_text, ok = self.ocr.extract_text(image_bytes)
+        except OCRImageError as exc:
+            return {"error": "invalid_image", "message": str(exc)}
         if not ok:
             return {
                 "error": "ocr_unavailable",
