@@ -207,10 +207,10 @@ def report_scam(text, notes="", source="unknown", contact=""):
         "hash": hashlib.sha256(text.encode("utf-8")).hexdigest()[:16],
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    if db.is_connected():
-        db.insert_report(report)
+    if db.insert_report(report):
         return {"status": "saved", "report": report}
-    return {"status": "offline", "message": "Reports DB not configured; nothing stored."}
+    error = getattr(db, "last_error", None) or "connection failed"
+    return {"status": "offline", "message": f"Reports DB not reachable: {error}"}
 
 
 def recent_reports(limit=15):
