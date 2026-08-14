@@ -19,14 +19,17 @@ CSS = """
   --bg:#f8fafc; --card:#ffffff; --border:#e2e8f0;
   --ink:#0f172a; --ink-2:#1e293b; --muted:#64748b;
   --flag-bg:#fffbfb; --flag-border:#fecaca; --flag-ev:#ffffff;
+  color-scheme:light;
 }
 
 .stApp { background:var(--bg); font-family:'Inter',-apple-system,'Segoe UI',sans-serif; color-scheme:light; }
 .block-container { padding-top:2rem; max-width:1100px; }
+[data-testid="stAppViewContainer"] { background:var(--bg); color:var(--ink-2); }
 
 [data-testid="stSidebar"] { background:#0f172a; }
 [data-testid="stSidebar"] * { color:#e2e8f0; }
 [data-testid="stSidebar"] hr { border-color:#1e293b; }
+[data-testid="stWidgetLabel"] p { color:#0f172a; }
 
 .ss-hero { background:linear-gradient(135deg,#4f46e5,#7c3aed 55%,#db2777); border-radius:20px; padding:28px 34px; color:#fff; margin-bottom:22px; box-shadow:0 10px 30px -12px rgba(79,70,229,.5); }
 .ss-hero h1 { color:#fff !important; font-size:2.1rem; font-weight:800; margin:0 0 6px; }
@@ -83,7 +86,8 @@ CSS = """
 .stTextInput input, .stTextArea textarea, [data-baseweb="select"] > div, [data-testid="stDateInput"] input { border-radius:10px; }
 [data-testid="stTextArea"] textarea, [data-testid="stTextInput"] input,
 [data-testid="stDateInput"] input, [data-baseweb="select"] > div {
-  background:#ffffff; color:#0f172a; border-color:#cbd5e1;
+  background:#ffffff !important; color:#0f172a !important; border-color:#cbd5e1 !important;
+  caret-color:#0f172a;
 }
 [data-testid="stTextArea"] textarea::placeholder, [data-testid="stTextInput"] input::placeholder,
 [data-testid="stDateInput"] input::placeholder,
@@ -96,7 +100,7 @@ CSS = """
   -webkit-text-fill-color:#0f172a; -webkit-box-shadow:0 0 0 1000px #ffffff inset; caret-color:#0f172a;
 }
 [data-testid="stTextArea"] textarea:focus, [data-testid="stTextInput"] input:focus { border-color:#4f46e5; box-shadow:0 0 0 2px rgba(79,70,229,.15); }
-[data-testid="stFileUploaderDropzone"] { border-radius:14px; border:2px dashed #c7d2fe; background:#eef2ff; }
+[data-testid="stFileUploaderDropzone"] { border-radius:14px; border:2px dashed #c7d2fe; background:#eef2ff !important; color:#1e293b; }
 
 .streamlit-expanderHeader { font-weight:600; color:var(--ink-2); }
 [data-testid="stExpander"] { border-radius:12px; }
@@ -144,9 +148,15 @@ DARK_CSS = """
 [data-testid="stSidebar"] { background:#0b1220; }
 [data-testid="stSidebar"] * { color:#e2e8f0; }
 
+[data-testid="stWidgetLabel"] p { color:#cbd5e1; }
+.stRadio [role="radiogroup"] label p { color:#cbd5e1; }
+.stSelectbox [data-baseweb="select"] > div { background:#0f172a !important; color:#e2e8f0 !important; }
+[data-testid="stFileUploaderDropzone"] p { color:#cbd5e1; }
+
 [data-testid="stTextArea"] textarea, [data-testid="stTextInput"] input,
 [data-testid="stDateInput"] input, [data-baseweb="select"] > div {
-  background:#0f172a; color:#e2e8f0; border-color:#1e293b;
+  background:#0f172a !important; color:#e2e8f0 !important; border-color:#1e293b !important;
+  caret-color:#e2e8f0;
 }
 [data-testid="stTextArea"] textarea::placeholder, [data-testid="stTextInput"] input::placeholder,
 [data-testid="stDateInput"] input::placeholder,
@@ -162,8 +172,10 @@ DARK_CSS = """
 
 .stButton > button:not([kind="primary"]) { background:#0f172a; border-color:#1e293b; color:#e2e8f0; }
 .stButton > button:not([kind="primary"]):hover { border-color:#4f46e5; color:#818cf8; }
+.stDownloadButton > button { background:#0f172a; border-color:#1e293b; color:#e2e8f0; }
+.stDownloadButton > button:hover { border-color:#4f46e5; color:#818cf8; }
 
-[data-testid="stFileUploaderDropzone"] { background:#0f172a; border-color:#334155; }
+[data-testid="stFileUploaderDropzone"] { background:#0f172a !important; border-color:#334155; }
 [data-testid="stFileUploaderDropzone"]:hover { border-color:#4f46e5; }
 [data-testid="stExpander"] { background:#0f172a; border-color:#1e293b; }
 .streamlit-expanderHeader { color:#e2e8f0; }
