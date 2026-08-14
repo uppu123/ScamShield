@@ -65,6 +65,16 @@ with st.sidebar:
         "Fake job posting & recruitment fraud detector built for the Indian job market. "
         "Combines a rule engine, an optional ML model, and known-template matching."
     )
+    with st.expander("Deploy diagnostics"):
+        diag = cloud_client.diagnostics()
+        if diag.get("secrets_parse_error"):
+            st.error(diag["secrets_parse_error"])
+        st.json(diag)
+        if st.button("Test MongoDB connection", key="diag_ping"):
+            if cloud_client.ping_db():
+                st.success("MongoDB connected.")
+            else:
+                st.error("MongoDB not reachable. Check MONGO_URI / allowlist.")
 
 st.markdown(
     '<div class="ss-hero"><h1>ScamShield</h1>'

@@ -385,10 +385,12 @@ def render_result(result, source_text="", gauge_size=170, uid=None, show_raw=Tru
             unsafe_allow_html=True,
         )
     with c3:
+        pdf_bytes = None
+        pdf_error = None
         try:
             pdf_bytes = build_pdf_report(result, payload_text)
-        except Exception:
-            pdf_bytes = None
+        except Exception as exc:
+            pdf_error = exc
         if pdf_bytes:
             st.markdown(
                 download_link(
@@ -401,7 +403,7 @@ def render_result(result, source_text="", gauge_size=170, uid=None, show_raw=Tru
                 unsafe_allow_html=True,
             )
         else:
-            st.caption("PDF report unavailable (no font on this host). JSON works.")
+            st.caption(f"PDF report unavailable: {pdf_error or 'unknown error'}. JSON works.")
     with c4:
         if st.button("New analysis", use_container_width=True, key=f"new_{uid}"):
             st.session_state.last_result = None

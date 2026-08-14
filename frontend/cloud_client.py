@@ -17,6 +17,7 @@ on the first call.
 import hashlib
 import os
 import sys
+from collections.abc import Mapping
 from datetime import datetime, timezone
 
 import streamlit as st
@@ -34,13 +35,44 @@ _SECRET_KEYS = (
 )
 
 _configured = False
+_config_error = None
 db = None
 
 
+def _find_secret(secrets, key, depth=0):
+    """Look up a secret by exact key, searching nested sections too.
+
+    Covers dashboard secrets stored at the top level (recommended) or under a
+    [section] (e.g. `[mongodb] MONGO_URI = "..."`).
+    """
+    try:
+        value = secrets.get(key, "")
+        if value:
+            return str(value)
+    except Exception:
+        pass
+    if depth >= 3:
+        return ""
+    try:
+        for sub in secrets.keys():
+            try:
+                value = secrets[sub]
+            except Exception:
+                continue
+            if isinstance(value, Mapping):
+                found = _find_secret(value, key, depth + 1)
+                if found:
+                    return found
+    except Exception:
+        pass
+    return ""
+
+
 def _configure():
-    global _configured, db
+    global _configured, _config_error, db
     if _configured:
         return
+    _config_error = None
     try:
         from dotenv import load_dotenv
 
@@ -51,14 +83,11 @@ def _configure():
         secrets = st.secrets
         if secrets.load_if_toml_exists():
             for key in _SECRET_KEYS:
-                try:
-                    value = secrets.get(key, "")
-                    if value:
-                        os.environ.setdefault(key, str(value))
-                except Exception:
-                    pass
-    except Exception:
-        pass
+                value = _find_secret(secrets, key)
+                if value:
+                    os.environ.setdefault(key, value)
+    except Exception as exc:
+        _config_error = f"secrets.toml could not be parsed ({type(exc).__name__}): {exc}"
     from backend.db.mongo import db as _db
     db = _db
     _configured = True
@@ -87,6 +116,27 @@ def _pipeline():
 
 def health():
     return True
+
+
+def diagnostics():
+    """Fast, non-blocking config status (no network calls)."""
+    _configure()
+    return {
+        "secrets_parse_error": _config_error,
+        "mongo_uri_set": bool(os.environ.get("MONGO_URI")),
+        "gemini_key_set": bool(os.environ.get("GEMINI_API_KEY")),
+        "model_disabled": bool(os.environ.get("SCAMSHIELD_DISABLE_MODEL")),
+        "model": _model_ref() or None,
+    }
+
+
+def ping_db():
+    """Blocking MongoDB connection check (for the diagnostics panel)."""
+    _configure()
+    try:
+        return bool(db.is_connected())
+    except Exception:
+        return False
 
 
 def analyze_text(text):

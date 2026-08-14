@@ -48,3 +48,15 @@ def test_build_pdf_report_handles_missing_optional_fields():
     minimal = {"score": 0.2, "label": "LIKELY LEGIT", "explanation": {"bullet_points": []}}
     data = build_pdf_report(minimal, "")
     assert data[:4] == b"%PDF"
+
+
+def test_build_pdf_report_falls_back_to_core_fonts(monkeypatch):
+    """PDF must build even when no .ttf file exists on the host (Helvetica)."""
+    def _no_fonts():
+        raise FileNotFoundError("no fonts")
+
+    monkeypatch.setattr("report._font_dir", lambda: None)
+    monkeypatch.setattr("report._font_files", _no_fonts)
+    data = build_pdf_report(SAMPLE_RESULT, "Pay Rs 2000 deposit. Generic gmail contact.")
+    assert data[:4] == b"%PDF"
+    assert len(data) > 1000

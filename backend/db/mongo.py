@@ -10,7 +10,7 @@ class Database:
         uri = uri or os.environ.get("MONGO_URI")
         if uri:
             try:
-                self.client = MongoClient(uri, serverSelectionTimeoutMS=3000)
+                self.client = MongoClient(uri, serverSelectionTimeoutMS=5000)
                 self.db = self.client[dbname]
             except Exception:
                 self.client = None
