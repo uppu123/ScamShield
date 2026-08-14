@@ -21,7 +21,7 @@ CSS = """
   --flag-bg:#fffbfb; --flag-border:#fecaca; --flag-ev:#ffffff;
 }
 
-.stApp { background:var(--bg); font-family:'Inter',-apple-system,'Segoe UI',sans-serif; }
+.stApp { background:var(--bg); font-family:'Inter',-apple-system,'Segoe UI',sans-serif; color-scheme:light; }
 .block-container { padding-top:2rem; max-width:1100px; }
 
 [data-testid="stSidebar"] { background:#0f172a; }
@@ -80,8 +80,16 @@ CSS = """
 .stButton > button { border-radius:10px; font-weight:600; border:1px solid var(--border); }
 .stButton > button[kind="primary"] { background:#4f46e5; border:1px solid #4f46e5; color:#fff; }
 .stButton > button[kind="primary"]:hover { background:#4338ca; }
-.stTextInput input, .stTextArea textarea, [data-baseweb="select"] > div { border-radius:10px; }
-.stTextArea textarea:focus, .stTextInput input:focus { border-color:#4f46e5; box-shadow:0 0 0 2px rgba(79,70,229,.15); }
+.stTextInput input, .stTextArea textarea, [data-baseweb="select"] > div, [data-testid="stDateInput"] input { border-radius:10px; }
+[data-testid="stTextArea"] textarea, [data-testid="stTextInput"] input,
+[data-testid="stDateInput"] input, [data-baseweb="select"] > div {
+  background:#ffffff; color:#0f172a; border-color:#cbd5e1;
+}
+[data-testid="stTextArea"] textarea::placeholder, [data-testid="stTextInput"] input::placeholder { color:#94a3b8; }
+[data-testid="stTextInput"] input:-webkit-autofill, [data-testid="stTextArea"] textarea:-webkit-autofill {
+  -webkit-text-fill-color:#0f172a; -webkit-box-shadow:0 0 0 1000px #ffffff inset; caret-color:#0f172a;
+}
+[data-testid="stTextArea"] textarea:focus, [data-testid="stTextInput"] input:focus { border-color:#4f46e5; box-shadow:0 0 0 2px rgba(79,70,229,.15); }
 [data-testid="stFileUploaderDropzone"] { border-radius:14px; border:2px dashed #c7d2fe; background:#eef2ff; }
 
 .streamlit-expanderHeader { font-weight:600; color:var(--ink-2); }
@@ -126,7 +134,7 @@ DARK_CSS = """
   --ink:#f1f5f9; --ink-2:#cbd5e1; --muted:#94a3b8;
   --flag-bg:#2a1215; --flag-border:#7f1d1d; --flag-ev:#3b1a1e;
 }
-.stApp { background:var(--bg); color:var(--ink-2); }
+.stApp { background:var(--bg); color:var(--ink-2); color-scheme:dark; }
 [data-testid="stSidebar"] { background:#0b1220; }
 [data-testid="stSidebar"] * { color:#e2e8f0; }
 
@@ -136,6 +144,9 @@ DARK_CSS = """
 }
 [data-testid="stTextArea"] textarea::placeholder, [data-testid="stTextInput"] input::placeholder { color:#64748b; }
 [data-testid="stTextArea"] textarea:focus, [data-testid="stTextInput"] input:focus { border-color:#4f46e5; }
+[data-testid="stTextInput"] input:-webkit-autofill, [data-testid="stTextArea"] textarea:-webkit-autofill {
+  -webkit-text-fill-color:#e2e8f0; -webkit-box-shadow:0 0 0 1000px #0f172a inset; caret-color:#e2e8f0;
+}
 
 .stButton > button:not([kind="primary"]) { background:#0f172a; border-color:#1e293b; color:#e2e8f0; }
 .stButton > button:not([kind="primary"]):hover { border-color:#4f46e5; color:#818cf8; }
