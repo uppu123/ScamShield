@@ -91,6 +91,7 @@ def _configure():
     from backend.db.mongo import db as _db
     db = _db
     _configured = True
+    db.connect()
 
 
 from backend.chat_service import _answer, _llm_reply  # noqa: E402
@@ -207,9 +208,15 @@ def report_scam(text, notes="", source="unknown", contact=""):
         "hash": hashlib.sha256(text.encode("utf-8")).hexdigest()[:16],
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    if db.insert_report(report):
+    try:
+        ok = db.insert_report(report)
+    except Exception as exc:
+        ok = False
+        error = f"{type(exc).__name__}: {exc}"
+    else:
+        error = getattr(db, "last_error", None) or "unknown error"
+    if ok:
         return {"status": "saved", "report": report}
-    error = getattr(db, "last_error", None) or "connection failed"
     return {"status": "offline", "message": f"Reports DB not reachable: {error}"}
 
 

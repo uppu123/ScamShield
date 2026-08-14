@@ -44,11 +44,25 @@ def test_insert_report_returns_false_after_exhausting_retries():
     assert db.last_error
 
 
-def test_insert_report_fails_when_db_unavailable():
+def test_insert_report_fails_when_db_unavailable(monkeypatch):
+    monkeypatch.delenv("MONGO_URI", raising=False)
     db = Database.__new__(Database)
-    db.client = object()
+    db.dbname = "scamshield"
+    db.client = None
     db.db = None
     db.last_error = None
     ok = db.insert_report({"text": "x"}, retries=2, gap=0)
     assert ok is False
-    assert db.last_error == "collection unavailable"
+    assert "MONGO_URI" in db.last_error
+
+
+def test_connect_repairs_stale_instance_when_uri_appears(monkeypatch):
+    monkeypatch.setenv("MONGO_URI", "mongodb://localhost:27017")
+    db = Database.__new__(Database)
+    db.dbname = "scamshield"
+    db.client = None
+    db.db = None
+    db.last_error = None
+    assert db.connect() is True
+    assert db.client is not None
+    assert db.db is not None
