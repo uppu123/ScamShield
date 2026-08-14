@@ -190,6 +190,26 @@ DARK_CSS = """
 .flag h4 { color:#f87171; }
 .flag .ev span { color:#fda4af !important; }
 .ss-hero { box-shadow:0 10px 30px -12px rgba(0,0,0,.6); }
+
+[data-testid="stCaptionContainer"] p { color:#94a3b8; }
+[data-testid="stMarkdownContainer"] hr { border-color:#1e293b; }
+
+[data-testid="stAlert"], [data-testid="stSuccessAlert"], [data-testid="stErrorAlert"],
+[data-testid="stWarningAlert"], [data-testid="stInfoAlert"] {
+  background:#111a2e; border-color:#1e293b;
+}
+[data-testid="stAlert"] p, [data-testid="stSuccessAlert"] p, [data-testid="stErrorAlert"] p,
+[data-testid="stWarningAlert"] p, [data-testid="stInfoAlert"] p { color:#e2e8f0 !important; }
+[data-testid="stAlert"] [data-testid="stMarkdownContainer"] strong, [data-testid="stSuccessAlert"] [data-testid="stMarkdownContainer"] strong,
+[data-testid="stErrorAlert"] [data-testid="stMarkdownContainer"] strong, [data-testid="stWarningAlert"] [data-testid="stMarkdownContainer"] strong,
+[data-testid="stInfoAlert"] [data-testid="stMarkdownContainer"] strong { color:#f8fafc !important; }
+
+[data-testid="stJson"] { background:#0f172a; border-color:#1e293b; }
+[data-testid="stJson"] pre, [data-testid="stJson"] code { color:#cbd5e1 !important; background:transparent !important; }
+
+[data-baseweb="popover"], [data-baseweb="menu"], [data-baseweb="popover"] [role="listbox"] { background:#111a2e !important; }
+[data-baseweb="menu-item"], [data-baseweb="popover"] [role="option"], [data-baseweb="popover"] li { color:#e2e8f0 !important; }
+[data-baseweb="menu-item"]:hover, [data-baseweb="popover"] [role="option"]:hover, [data-baseweb="popover"] li:hover { background:#1e293b !important; }
 </style>
 """
 
