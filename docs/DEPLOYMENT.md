@@ -27,8 +27,13 @@ service + MongoDB directly.
 1. Go to <https://share.streamlit.io> and sign in with GitHub.
 2. **Create app** → select `uppu123/ScamShield` → branch `main` →
    entrypoint `frontend/app.py`.
-3. In **Advanced settings** set **Python version 3.11** (torch 2.3.1 does not
-   support 3.13/3.14 — Cloud defaults to 3.14).
+3. In **Advanced settings** set **Python version 3.11 or 3.12** (torch 2.3.1
+   has no wheels for 3.13/3.14 — Cloud defaults to 3.14, so the install fails
+   with "error installing requirements" unless you pin it). To change the
+   Python version of an existing app you must **delete and redeploy** it.
+4. `frontend/requirements.txt` installs the **CPU-only** torch build
+   (`torch==2.3.1+cpu` via `--extra-index-url https://download.pytorch.org/whl/cpu`)
+   so the cloud build skips the ~2.5GB CUDA stack and finishes quickly.
 
 ### 3. Model
 

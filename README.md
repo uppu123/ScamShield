@@ -116,8 +116,10 @@ Example response:
 ## Deploy
 
 Free hosting on **Streamlit Community Cloud** (single-process, no card needed):
-deploy `frontend/app.py` from your GitHub repo, set Python 3.11, and add the
-secrets (`MONGO_URI`, `GEMINI_API_KEY`, `SCAMSHIELD_MODEL`) in the dashboard.
+deploy `frontend/app.py` from your GitHub repo, **set Python 3.11 or 3.12 in
+Advanced settings** (Cloud defaults to 3.14, where `torch==2.3.1` won't
+install), and add the secrets (`MONGO_URI`, `GEMINI_API_KEY`,
+`SCAMSHIELD_MODEL`) in the dashboard.
 Full instructions (plus the Docker/self-hosted option) are in
 `docs/DEPLOYMENT.md`. A template for the secrets is at
 `.streamlit/secrets.toml.example`.
