@@ -20,6 +20,7 @@ CSS = """
 :root {
   --bg:#f8fafc; --card:#ffffff; --border:#e2e8f0;
   --ink:#0f172a; --ink-2:#1e293b; --muted:#64748b;
+  --body:#334155; --body-2:#475569; --body-3:#1e293b; --note:#64748b;
   --flag-bg:#fffbfb; --flag-border:#fecaca; --flag-ev:#ffffff;
   color-scheme:light;
 }
@@ -212,6 +213,7 @@ DARK_CSS = """
 .stApp {
   --bg:#0b1220; --card:#111a2e; --border:#1e293b;
   --ink:#f1f5f9; --ink-2:#cbd5e1; --muted:#94a3b8;
+  --body:#cbd5e1; --body-2:#94a3b8; --body-3:#e2e8f0; --note:#94a3b8;
   --flag-bg:#2a1215; --flag-border:#7f1d1d; --flag-ev:#3b1a1e;
 }
 .stApp { background:var(--bg); color:var(--ink-2); color-scheme:dark; }
@@ -321,13 +323,21 @@ def copy_to_clipboard(text, label="Copy answer"):
     payload = json.dumps(str(text))
     icon_clip = "\U0001F4CB"  # clipboard emoji
     icon_ok = "\u2713"  # check mark
+    try:
+        dark = st.session_state.get("theme") == "Dark"
+    except Exception:
+        dark = False
+    if dark:
+        btn_color, btn_border = "#94a3b8", "#334155"
+    else:
+        btn_color, btn_border = "#64748b", "#e2e8f0"
     impl = (
         "<!doctype html><html><body style='margin:0'>"
         "<style>"
-        "button{font:600 .72rem Inter,system-ui,sans-serif;color:#64748b;background:transparent;"
-        "border:1px solid #e2e8f0;border-radius:8px;padding:4px 10px;cursor:pointer;transition:all .15s ease}"
+        "button{font:600 .72rem Inter,system-ui,sans-serif;color:" + btn_color + ";background:transparent;"
+        "border:1px solid " + btn_border + ";border-radius:8px;padding:4px 10px;cursor:pointer;transition:all .15s ease}"
         "button:hover{color:#4f46e5;border-color:#4f46e5}"
-        "button.done{color:#16a34a;border-color:#16a34a;background:#f0fdf4}"
+        "button.done{color:#4ade80;border-color:#16a34a;background:#0f2317}"
         "</style>"
         f"<button id='b' onclick='cop()'>{icon_clip} {html.escape(label)}</button>"
         "<script>"
@@ -495,7 +505,7 @@ def render_result(result, source_text="", gauge_size=170, uid=None, show_raw=Tru
         f'{_gauge_html(score, color, gauge_size)}'
         '<div style="text-align:center;margin-top:12px">'
         f'<span class="ss-pill {cls}">{verdict}</span>'
-        f'<span style="margin-left:8px;font-weight:800;color:#0f172a">{html.escape(str(label))}</span>'
+        f'<span style="margin-left:8px;font-weight:800;color:var(--body-3)">{html.escape(str(label))}</span>'
         "</div>"
         '<div style="text-align:center;margin-top:10px">' + " ".join(meta_pills) + "</div>"
         "</div>",
@@ -527,7 +537,7 @@ def render_result(result, source_text="", gauge_size=170, uid=None, show_raw=Tru
     if summary:
         bullets = "".join(f"<li>{html.escape(b)}</li>" for b in summary)
         st.markdown(
-            f'<div class="ss-card ss-reveal"><h3>Summary</h3><ul style="margin:0;padding-left:20px;color:#334155">{bullets}</ul></div>',
+            f'<div class="ss-card ss-reveal"><h3>Summary</h3><ul style="margin:0;padding-left:20px;color:var(--body)">{bullets}</ul></div>',
             unsafe_allow_html=True,
         )
 
@@ -560,7 +570,7 @@ def render_result(result, source_text="", gauge_size=170, uid=None, show_raw=Tru
     if highlighted:
         st.markdown(
             '<div class="ss-card ss-reveal"><h3>Highlighted text</h3>'
-            f'<div style="line-height:1.7;color:#334155">{highlighted}</div></div>',
+            f'<div style="line-height:1.7;color:var(--body)">{highlighted}</div></div>',
             unsafe_allow_html=True,
         )
 
@@ -568,7 +578,7 @@ def render_result(result, source_text="", gauge_size=170, uid=None, show_raw=Tru
     if ocr_text:
         st.markdown(
             '<div class="ss-card ss-reveal"><h3>Text read from image (OCR)</h3>'
-            f'<div style="line-height:1.6;color:#475569;font-size:.9rem">{html.escape(str(ocr_text))}</div></div>',
+            f'<div style="line-height:1.6;color:var(--body-2);font-size:.9rem">{html.escape(str(ocr_text))}</div></div>',
             unsafe_allow_html=True,
         )
 
@@ -679,12 +689,12 @@ def render_reports(reports):
         body = html.escape(str(rep.get("text", "")))
         notes = rep.get("notes")
         notes_html = (
-            f'<p style="color:#64748b;font-size:.85rem;margin:8px 0 0">{html.escape(str(notes))}</p>'
+            f'<p style="color:var(--note);font-size:.85rem;margin:8px 0 0">{html.escape(str(notes))}</p>'
             if notes
             else ""
         )
         st.markdown(
-            f'<div class="ss-card">{pill}<p style="margin:10px 0 0;color:#1e293b;line-height:1.55">{body}</p>{notes_html}</div>',
+            f'<div class="ss-card">{pill}<p style="margin:10px 0 0;color:var(--body-3);line-height:1.55">{body}</p>{notes_html}</div>',
             unsafe_allow_html=True,
         )
 
