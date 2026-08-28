@@ -29,6 +29,18 @@ def _home_tesseract_candidates():
     return dirs
 
 
+def _invalid_explicit_cmd():
+    """Return a TESSERACT_CMD/TESSERACT_PATH value that is set but unresolvable."""
+    explicit = (
+        os.environ.get("TESSERACT_CMD")
+        or os.environ.get("TESSERACT_PATH")
+        or ""
+    ).strip().strip('"')
+    if explicit and not os.path.isfile(explicit) and not shutil.which(explicit):
+        return explicit
+    return None
+
+
 def discover_tesseract():
     """Return a usable Tesseract binary path, or None."""
     explicit = (
@@ -94,6 +106,9 @@ class OCREngine:
         except Exception as exc:
             self._available = False
             self._error = f"{type(exc).__name__}: {exc}"
+        invalid = _invalid_explicit_cmd()
+        if invalid and self._error:
+            self._error += f" (TESSERACT_CMD is set to {invalid!r}, which does not exist on this machine)"
         return False
 
     def error(self):

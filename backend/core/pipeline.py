@@ -65,6 +65,8 @@ class ScamPipeline:
                     "OCR engine unavailable. Install Tesseract OCR and set TESSERACT_CMD "
                     "to its binary path. Detail: "
                     + (self.ocr.error() or "tesseract not found")
+                    + " (if you set TESSERACT_CMD, make sure that exact path exists on "
+                      "this machine; on Streamlit Cloud it is found automatically)",
                 ),
             }
         if not ocr_text:
