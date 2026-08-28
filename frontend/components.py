@@ -32,6 +32,8 @@ CSS = """
 [data-testid="stSidebar"] { background:#0f172a; }
 [data-testid="stSidebar"] * { color:#e2e8f0; }
 [data-testid="stSidebar"] hr { border-color:#1e293b; }
+[data-testid="stSidebar"] [data-baseweb="select"] > div { background:#0f172a !important; color:#ffffff !important; border-color:#334155 !important; }
+[data-testid="stSidebar"] [data-baseweb="select"] > div:hover { border-color:#4f46e5; }
 [data-testid="stWidgetLabel"] p { color:#0f172a; }
 
 .ss-hero { background:linear-gradient(135deg,#4f46e5,#7c3aed 55%,#db2777); border-radius:20px; padding:28px 34px; color:#fff; margin-bottom:22px; box-shadow:0 10px 30px -12px rgba(79,70,229,.5); }
@@ -164,8 +166,8 @@ footer { visibility:hidden; }
   background:linear-gradient(135deg,#4f46e5,#7c3aed); border-color:#6d6cf0;
   box-shadow:0 4px 14px -6px rgba(99,102,241,.7);
 }
+[data-testid="stSidebar"] .stRadio [role="radiogroup"] label p { margin:0 !important; font-size:.92rem; color:#e2e8f0; white-space:nowrap; }
 [data-testid="stSidebar"] .stRadio [role="radiogroup"] label:has(input:checked) p { color:#fff !important; font-weight:700; }
-[data-testid="stSidebar"] .stRadio [role="radiogroup"] label p { margin:0 !important; font-size:.92rem; color:#e2e8f0; }
 
 .ss-hiw { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:0 0 20px; }
 .ss-hiw .ss-card { margin-bottom:0; cursor:default; transition:transform .18s ease, box-shadow .25s ease; animation:ss-rise .5s ease both; }
@@ -249,6 +251,8 @@ DARK_CSS = """
 
 [data-testid="stFileUploaderDropzone"] { background:#0f172a !important; border-color:#334155; }
 [data-testid="stFileUploaderDropzone"]:hover { border-color:#4f46e5; }
+[data-testid="stFileUploaderDropzoneInstructions"] *, [data-testid="stFileUploaderDropzoneInstructions"] { color:#e2e8f0 !important; }
+[data-testid="stFileUploaderFile"] * { color:#e2e8f0 !important; }
 [data-testid="stExpander"] { background:#0f172a; border-color:#1e293b; }
 .streamlit-expanderHeader { color:#e2e8f0; }
 

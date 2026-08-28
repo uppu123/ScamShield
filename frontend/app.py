@@ -78,7 +78,7 @@ with st.sidebar:
         label_visibility="collapsed",
     )
     st.markdown("---")
-    st.subheader("Appearance")
+    st.markdown('<div class="sb-nav-label">Appearance</div>', unsafe_allow_html=True)
     st.selectbox("Theme", ["Light", "Dark"], key="theme", label_visibility="collapsed")
     st.markdown("---")
     st.subheader("About")
