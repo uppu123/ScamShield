@@ -283,9 +283,23 @@ DARK_CSS = """
 [data-testid="stJson"] { background:#0f172a; border-color:#1e293b; }
 [data-testid="stJson"] pre, [data-testid="stJson"] code { color:#cbd5e1 !important; background:transparent !important; }
 
-[data-baseweb="popover"], [data-baseweb="menu"], [data-baseweb="popover"] [role="listbox"] { background:#111a2e !important; }
-[data-baseweb="menu-item"], [data-baseweb="popover"] [role="option"], [data-baseweb="popover"] li { color:#e2e8f0 !important; }
-[data-baseweb="menu-item"]:hover, [data-baseweb="popover"] [role="option"]:hover, [data-baseweb="popover"] li:hover { background:#1e293b !important; }
+[data-testid="stHeader"] { background:#0b1220 !important; color:#e2e8f0; border:none; }
+[data-testid="stHeader"] [data-testid="stToolbar"] { background:transparent !important; border:none; }
+[data-testid="stHeader"] [data-testid="stToolbar"] button { color:#e2e8f0 !important; }
+[data-testid="stHeader"] [data-testid="stDecoration"] { display:none; }
+
+[data-baseweb="popover"], [data-baseweb="popover"] > div, [data-baseweb="menu"],
+[data-baseweb="menu"] ul, [data-baseweb="menu"] [role="listbox"] { background:#111a2e !important; border-color:#334155 !important; }
+[data-baseweb="popover"] *, [data-baseweb="menu"] *, [data-testid="stSelectbox"] [role="listbox"] *,
+[data-baseweb="menu-item"], [data-baseweb="popover"] [role="option"], [data-baseweb="popover"] li,
+[data-baseweb="menu"] [role="option"], [data-baseweb="menu"] li {
+  color:#ffffff !important;
+}
+[data-baseweb="menu-item"]:hover, [data-baseweb="popover"] [role="option"]:hover,
+[data-baseweb="popover"] li:hover, [data-baseweb="menu"] [role="option"]:hover,
+[data-baseweb="menu"] li:hover {
+  background:#1e293b !important; color:#ffffff !important;
+}
 
 .ss-hiw .ico { background:#1e293b; }
 .ss-hiw p { color:#94a3b8; }
