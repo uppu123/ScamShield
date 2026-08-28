@@ -61,7 +61,11 @@ class ScamPipeline:
         if not ok:
             return {
                 "error": "ocr_unavailable",
-                "message": "OCR engine unavailable. Install Tesseract and set TESSERACT_CMD.",
+                "message": (
+                    "OCR engine unavailable. Install Tesseract OCR and set TESSERACT_CMD "
+                    "to its binary path. Detail: "
+                    + (self.ocr.error() or "tesseract not found")
+                ),
             }
         if not ocr_text:
             return {"error": "no_text", "message": "No text could be read from the image."}

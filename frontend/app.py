@@ -5,15 +5,18 @@ import streamlit as st
 import cloud_client
 from components import (
     backend_status,
+    copy_to_clipboard,
     fetch_reports,
     inject_css,
     inject_dark_css,
     render_chat,
     render_history,
+    render_how_it_works,
     render_loader,
     render_reports,
     render_result,
     render_typing,
+    show_analysis_error,
 )
 
 SCAM_SAMPLE = (
@@ -78,10 +81,19 @@ with st.sidebar:
                 st.error(f"MongoDB not reachable: {err}")
 
 st.markdown(
-    '<div class="ss-hero"><h1>ScamShield</h1>'
-    "<p>Paste a job posting or upload a screenshot and get an instant, explainable scam-risk verdict.</p></div>",
+    '<div class="ss-hero">'
+    '<div class="ss-hero-badge">&#128481; Built for the Indian job market</div>'
+    '<h1>ScamShield</h1>'
+    "<p>Paste a job posting or upload a screenshot and get an instant, explainable scam-risk verdict.</p>"
+    '<div class="ss-hero-chips">'
+    '<span>No experience needed</span><span>Earn Rs 50,000/month</span>'
+    '<span>Pay a deposit to apply</span><span>Limited seats</span>'
+    "</div>"
+    "</div>",
     unsafe_allow_html=True,
 )
+
+render_how_it_works()
 
 
 def _analyze(call, label="Running analysis"):
@@ -94,7 +106,8 @@ def _analyze(call, label="Running analysis"):
     finally:
         holder.empty()
     if data is None or data.get("error"):
-        st.error(data.get("message", data.get("error", "Analysis failed.")) if data else "Analysis failed.")
+        show_analysis_error(data.get("error", "analysis_failed") if data else "analysis_failed",
+                            data.get("message", "") if data else "Analysis failed.")
         return None
     return data
 
@@ -133,7 +146,7 @@ def _send_chat(message):
 
 
 tab_text, tab_image, tab_reports, tab_history, tab_chat = st.tabs(
-    ["Analyze text", "Analyze screenshot", "Recent reports", "Session history", "Ask ScamShield"]
+    ["\u270d\ufe0f Analyze text", "\U0001f5bc\ufe0f Analyze screenshot", "\U0001f4ca Recent reports", "\U000023f3 Session history", "\U0001f4ac Ask ScamShield"]
 )
 
 with tab_text:
@@ -227,9 +240,11 @@ with tab_chat:
     with st.form("chat_form"):
         question = st.text_input(
             "Ask a question",
+            key="chat_input",
             placeholder="e.g. Is asking for a security deposit normal?",
         )
         submitted = st.form_submit_button("Send", type="primary", use_container_width=True)
     if submitted and question.strip():
+        st.session_state.chat_input = ""
         _send_chat(question)
         st.rerun()
