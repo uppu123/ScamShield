@@ -67,22 +67,29 @@ class OCREngine:
         self._error = None
 
     def is_available(self):
-        if self._available is None:
-            try:
-                import pytesseract
+        # Do NOT latch failures: re-attempt discovery on every call until
+        # it succeeds once (heals stale processes / late .env / late cloud
+        # apt installs). Only latch success.
+        if self._available is True:
+            return True
+        try:
+            import pytesseract
 
-                if self.tesseract_cmd:
-                    pytesseract.pytesseract.tesseract_cmd = self.tesseract_cmd
-                pytesseract.get_tesseract_version()
-                self._available = True
-                self._error = None
-            except FileNotFoundError as exc:
-                self._available = False
-                self._error = str(exc) or "tesseract binary not found"
-            except Exception as exc:
-                self._available = False
-                self._error = f"{type(exc).__name__}: {exc}"
-        return self._available
+            cmd = self.tesseract_cmd or discover_tesseract()
+            self.tesseract_cmd = cmd
+            if cmd:
+                pytesseract.pytesseract.tesseract_cmd = cmd
+            pytesseract.get_tesseract_version()
+            self._available = True
+            self._error = None
+            return True
+        except FileNotFoundError as exc:
+            self._available = False
+            self._error = str(exc) or "tesseract binary not found"
+        except Exception as exc:
+            self._available = False
+            self._error = f"{type(exc).__name__}: {exc}"
+        return False
 
     def error(self):
         """Human-readable reason OCR is unavailable (None when it works)."""
