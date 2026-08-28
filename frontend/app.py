@@ -31,10 +31,25 @@ LEGIT_SAMPLE = (
     "Apply via careers@acme.co.in or call HR at +91 22 4000 0000."
 )
 
+NAV_LABELS = {
+    "text": "\u270d\ufe0f Analyze text",
+    "image": "\U0001f5bc\ufe0f Analyze screenshot",
+    "reports": "\U0001f4ca Recent reports",
+    "history": "\u23f3 Session history",
+    "chat": "\U0001f4ac Ask ScamShield",
+}
+
 st.set_page_config(page_title="ScamShield", page_icon="SS", layout="wide")
 inject_css()
 
-for key, default in (("last_result", None), ("last_source", ""), ("history", []), ("chat", []), ("theme", "Light")):
+for key, default in (
+    ("last_result", None),
+    ("last_source", ""),
+    ("history", []),
+    ("chat", []),
+    ("theme", "Light"),
+    ("nav", "text"),
+):
     if key not in st.session_state:
         st.session_state[key] = default
 
@@ -54,14 +69,17 @@ with st.sidebar:
     if not online:
         st.caption("The analysis engine failed to start.")
     st.markdown("---")
-    st.subheader("Appearance")
+    st.markdown('<div class="sb-nav-label">Utilities</div>', unsafe_allow_html=True)
     st.radio(
-        "Theme",
-        ["Light", "Dark"],
-        horizontal=True,
-        key="theme",
-        on_change=lambda: None,
+        "Navigate",
+        list(NAV_LABELS.keys()),
+        format_func=lambda v: NAV_LABELS[v],
+        key="nav",
+        label_visibility="collapsed",
     )
+    st.markdown("---")
+    st.subheader("Appearance")
+    st.selectbox("Theme", ["Light", "Dark"], key="theme", label_visibility="collapsed")
     st.markdown("---")
     st.subheader("About")
     st.write(
@@ -83,17 +101,15 @@ with st.sidebar:
 st.markdown(
     '<div class="ss-hero">'
     '<div class="ss-hero-badge">&#128481; Built for the Indian job market</div>'
-    '<h1>ScamShield</h1>'
+    "<h1>ScamShield</h1>"
     "<p>Paste a job posting or upload a screenshot and get an instant, explainable scam-risk verdict.</p>"
     '<div class="ss-hero-chips">'
-    '<span>No experience needed</span><span>Earn Rs 50,000/month</span>'
-    '<span>Pay a deposit to apply</span><span>Limited seats</span>'
+    "<span>No experience needed</span><span>Earn Rs 50,000/month</span>"
+    "<span>Pay a deposit to apply</span><span>Limited seats</span>"
     "</div>"
     "</div>",
     unsafe_allow_html=True,
 )
-
-render_how_it_works()
 
 
 def _analyze(call, label="Running analysis"):
@@ -106,8 +122,10 @@ def _analyze(call, label="Running analysis"):
     finally:
         holder.empty()
     if data is None or data.get("error"):
-        show_analysis_error(data.get("error", "analysis_failed") if data else "analysis_failed",
-                            data.get("message", "") if data else "Analysis failed.")
+        show_analysis_error(
+            data.get("error", "analysis_failed") if data else "analysis_failed",
+            data.get("message", "") if data else "Analysis failed.",
+        )
         return None
     return data
 
@@ -145,22 +163,19 @@ def _send_chat(message):
     st.session_state.chat.append({"role": "bot", "text": reply, "source": source})
 
 
-tab_text, tab_image, tab_reports, tab_history, tab_chat = st.tabs(
-    ["\u270d\ufe0f Analyze text", "\U0001f5bc\ufe0f Analyze screenshot", "\U0001f4ca Recent reports", "\U000023f3 Session history", "\U0001f4ac Ask ScamShield"]
-)
-
-with tab_text:
-    sample = st.selectbox("Try a sample posting", ["", "Scam sample", "Legit sample"], key="sample_select")
-    if sample == "Scam sample":
+def page_text():
+    render_how_it_works()
+    s1, s2, _ = st.columns([1, 1, 2])
+    if s1.button("\u2728 Load scam sample", use_container_width=True):
         st.session_state.analyze_text = SCAM_SAMPLE
-    elif sample == "Legit sample":
+    if s2.button("\u2705 Load legit sample", use_container_width=True):
         st.session_state.analyze_text = LEGIT_SAMPLE
 
     st.text_area(
         "Paste the job posting text",
         height=240,
         key="analyze_text",
-        placeholder="Paste the job posting text here, or pick a sample above. e.g. 'Work from home, earn Rs 50,000/month, pay a refundable deposit to apply...'",
+        placeholder="Paste the job posting text here, or load a sample above. e.g. 'Work from home, earn Rs 50,000/month, pay a refundable deposit to apply...'",
     )
 
     c1, c2 = st.columns([1, 1])
@@ -180,10 +195,11 @@ with tab_text:
                 st.session_state.last_source = text
                 _commit(result, "text")
 
-    if st.session_state.last_result:
+    if (st.session_state.last_result or {}).get("type") == "text":
         render_result(st.session_state.last_result, st.session_state.last_source, uid="current_text")
 
-with tab_image:
+
+def page_image():
     file = st.file_uploader(
         "Upload a screenshot (WhatsApp / LinkedIn post)",
         type=["png", "jpg", "jpeg", "webp"],
@@ -208,19 +224,22 @@ with tab_image:
                 st.session_state.last_source = result.get("ocr_text", "")
                 _commit(result, "image")
 
-    if st.session_state.last_result:
+    if (st.session_state.last_result or {}).get("type") == "image":
         render_result(st.session_state.last_result, st.session_state.last_source, uid="current_image")
 
-with tab_reports:
+
+def page_reports():
     if st.button("Refresh feed", use_container_width=True):
         fetch_reports.clear()
     reports = fetch_reports(15)
     render_reports(reports)
 
-with tab_history:
+
+def page_history():
     render_history(st.session_state.history)
 
-with tab_chat:
+
+def page_chat():
     render_chat(st.session_state.chat)
     if st.button("Clear conversation", use_container_width=True):
         st.session_state.chat = []
@@ -248,3 +267,16 @@ with tab_chat:
         st.session_state.chat_input = ""
         _send_chat(question)
         st.rerun()
+
+
+page = st.session_state["nav"]
+if page == "text":
+    page_text()
+elif page == "image":
+    page_image()
+elif page == "reports":
+    page_reports()
+elif page == "history":
+    page_history()
+elif page == "chat":
+    page_chat()
