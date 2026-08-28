@@ -37,7 +37,12 @@ def discover_tesseract():
         or ""
     ).strip().strip('"')
     if explicit:
-        return explicit
+        if os.path.isfile(explicit):
+            return explicit
+        if shutil.which(explicit):
+            return shutil.which(explicit)
+        # TESSERACT_CMD is set but points at a missing binary (e.g. a Windows
+        # path in Cloud secrets) -- ignore it and keep scanning real candidates.
     found = shutil.which("tesseract")
     if found:
         return found
